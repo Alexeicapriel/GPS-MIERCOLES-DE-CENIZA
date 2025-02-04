@@ -14,29 +14,35 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([0, 0], 2); // Vista inicial
-        
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
-        
+
         let marker = L.marker([0, 0]).addTo(map);
-        
+
         async function obtenerUbicacion() {
             try {
                 const response = await fetch('https://demo.traccar.org/api/positions', {
                     headers: { 'Authorization': 'Basic ' + btoa('admin:admin') }
                 });
                 const data = await response.json();
-                if (data.length > 0) {
-                    const { latitude, longitude } = data[0];
+                
+                // Filtrar por el dispositivo correcto (ID 683351)
+                const miDispositivo = data.find(d => d.deviceId === 683351);
+                
+                if (miDispositivo) {
+                    const { latitude, longitude } = miDispositivo;
                     marker.setLatLng([latitude, longitude]);
                     map.setView([latitude, longitude], 15);
+                } else {
+                    console.error("No se encontró el dispositivo con ID 683351");
                 }
             } catch (error) {
                 console.error('Error obteniendo la ubicación:', error);
             }
         }
-        
+
         setInterval(obtenerUbicacion, 5000); // Actualiza cada 5 segundos
     </script>
 </body>
